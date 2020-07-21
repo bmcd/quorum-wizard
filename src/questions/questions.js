@@ -1,7 +1,4 @@
 import {
-  transformCakeshopAnswer,
-  transformSplunkAnswer,
-  transformTxGenerateAnswer,
   validateNetworkId,
   validateNumberStringInRange,
 } from './validators'
@@ -22,7 +19,7 @@ import {
   LATEST_TESSERA,
   LATEST_TESSERA_J8,
 } from '../generators/download'
-
+import { Separator } from 'inquirer'
 
 export const INITIAL_MODE = {
   type: 'list',
@@ -116,34 +113,28 @@ export const TRANSACTION_MANAGER = {
   choices: ({ deployment }) => getDownloadableTesseraChoices(deployment),
 }
 
-export const CAKESHOP = {
-  type: 'list', // can't transform answer from boolean on confirm questions, so it had to be a list
-  name: 'cakeshop',
-  message: 'Do you want to run Cakeshop (our chain explorer) with your network?',
-  choices: ['No', 'Yes'],
-  default: 'No',
+export const TOOLS = {
+  type: 'checkbox', // can't transform answer from boolean on confirm questions, so it had to be a list
+  name: 'tools',
+  message: 'What tools would you like to deploy alongside your network?',
+  choices: (answers) => ([
+    new Separator('=== Quorum Tools ==='),
+    {
+      name: 'Cakeshop, Quorum\'s official block explorer',
+      value: 'cakeshop',
+    },
+    new Separator('=== Third Party Tools ==='),
+    {
+      name: 'Splunk',
+      value: 'splunk',
+    },
+    {
+      name: 'Splunk Transaction Auto-generator',
+      value: 'txGenerate',
+    },
+  ]),
+  default: [],
   when: (answers) => !isKubernetes(answers.deployment),
-  filter: transformCakeshopAnswer,
-}
-
-export const SPLUNK = {
-  type: 'list',
-  name: 'splunk',
-  message: 'Do you want to run Splunk?',
-  choices: ['No', 'Yes'],
-  default: 'No',
-  when: (answers) => !isKubernetes(answers.deployment),
-  filter: transformSplunkAnswer,
-}
-
-export const TX_GENERATE = {
-  type: 'list',
-  name: 'txGenerate',
-  message: 'Do you want to auto-generate transactions?',
-  choices: ['No', 'Yes'],
-  default: ['No'],
-  when: (answers) => !isKubernetes(answers.deployment),
-  filter: transformTxGenerateAnswer,
 }
 
 export const KEY_GENERATION = {
@@ -200,9 +191,7 @@ export const QUESTIONS = [
   NUMBER_NODES,
   QUORUM_VERSION,
   TRANSACTION_MANAGER,
-  CAKESHOP,
-  SPLUNK,
-  TX_GENERATE,
+  TOOLS,
   KEY_GENERATION,
   NETWORK_ID,
   // GENESIS_LOCATION,
@@ -217,9 +206,7 @@ export const QUICKSTART_ANSWERS = {
   quorumVersion: LATEST_QUORUM,
   transactionManager: isJava11Plus() ? LATEST_TESSERA : LATEST_TESSERA_J8,
   deployment: 'bash',
-  cakeshop: isJava11Plus() ? LATEST_CAKESHOP : LATEST_CAKESHOP_J8,
-  splunk: false,
-  txGenerate: false,
+  tools: ['cakeshop'],
   generateKeys: false,
   networkId: '10',
   customizePorts: false,

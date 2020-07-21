@@ -19,9 +19,7 @@ export function createConfigFromAnswers(answers) {
     quorumVersion = LATEST_QUORUM,
     transactionManager = isJava11Plus() ? LATEST_TESSERA : LATEST_TESSERA_J8,
     deployment = 'bash',
-    cakeshop = isJava11Plus() ? LATEST_CAKESHOP : LATEST_CAKESHOP_J8,
-    splunk = false,
-    txGenerate = false,
+    tools = [],
     generateKeys = false,
     networkId = '10',
     genesisLocation = 'none',
@@ -35,6 +33,9 @@ export function createConfigFromAnswers(answers) {
   const networkFolder = name
     || defaultNetworkName(numberNodes, consensus, transactionManager, deployment)
   const dockerSubnet = (isDocker(deployment) && containerPorts !== undefined) ? containerPorts.dockerSubnet : ''
+  const cakeshop = getCakeshopVersionFromTools(deployment, tools)
+  const splunk = tools.includes('splunk')
+  const txGenerate = tools.includes('txGenerate')
   return {
     network: {
       name: networkFolder,
@@ -130,6 +131,15 @@ export function getContainerPorts(deployment) {
       thirdPartyPort: 9080,
     },
   }
+}
+
+function getCakeshopVersionFromTools(deployment, tools) {
+  if(!tools.includes('cakeshop')) {
+    return 'none'
+  } else if (!isBash(deployment)) {
+    return LATEST_CAKESHOP
+  }
+  return isJava11Plus() ? LATEST_CAKESHOP : LATEST_CAKESHOP_J8
 }
 
 export function isTessera(tessera) {
